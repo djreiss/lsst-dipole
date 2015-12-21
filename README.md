@@ -21,6 +21,8 @@ Notebooks and analyses of dipole fitting for LSST
    * optimization spends much time floating around minimum - possible earlier cut-off (also see point above, that may fix it)
    * improve starting parameters for optimization -- e.g. starting fluxes from original (template/obs) images -- see (3) above.
    * compute chi2 over subset of image closest to centroids rather than over entire footprint
+   * more parameters are optimized than necessary (e.g. separate positive and negative flux values)
+   * parameters are currently unconstrained (e.g. can constrain flux to be > 0)
 
 NOTES:
 
