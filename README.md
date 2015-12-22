@@ -24,6 +24,9 @@ Notebooks and analyses of dipole fitting for LSST
      * PSF shape/size
      * compare results with those from “pure python” fits (astropy /
        scipy / lmfit)
+         * This is DONE and I can get faster fits (nearly as
+           accurate?) using pure python. See notebook #5 compared to
+           notebook #3.
 6. Current PSF fit implementation may be able to be sped up:
    * Multiple vectorized calls in DipoleAlgorithms.cc -- PsfDipoleFlux::chi2
    * chi2 uses PSF image vs. using analytic kernel function
