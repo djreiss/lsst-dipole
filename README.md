@@ -41,6 +41,14 @@ Notebooks and analyses of dipole fitting for LSST
      positive and negative flux values)
    * parameters are currently unconstrained (e.g. can constrain flux
      to be > 0)
+ 7. PRIMARY QUESTION: What is the goal of the dipole measurement as
+    part of the LSST pipelines? Clearly identification and flagging of
+    false positives. But what about using the machine learning
+    techniques that have been developed over the years for transient
+    classification? Measurement of dipoles (orientation and amplitude)
+    is helpful for quantifying DCR and astrometric misalignments. Is
+    this a goal? Then we need to enumerate how these measurements will
+    feed back into the image differencing.
 
 NOTES:
 
