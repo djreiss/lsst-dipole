@@ -54,5 +54,5 @@ Notebooks and analyses of dipole fitting for LSST
 NOTES:
 
 1. LSST pixel scale 0.2” / pixel
-2. expected seeing is  ~ 0.69”
+2. expected seeing is  ~ 0.69” in *r*
 3.   —> ~ 3.5 pixel FWHM seeing
