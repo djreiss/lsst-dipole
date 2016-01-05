@@ -30,6 +30,9 @@ Notebooks and analyses of dipole fitting for LSST
 6. Current PSF dipole fit implementation may be able to be sped up:
    * Multiple vectorized calls in DipoleAlgorithms.cc -- PsfDipoleFlux::chi2
    * chi2 uses PSF image vs. using analytic kernel function
+   * some calculations are computed each time during minimization (in
+     `chi2` function) that can be moved outside (not sure if these
+     calc's are really expensive though).
    * optimization spends much time floating around minimum - possible
      earlier cut-off (also see point above, that may fix it)
    * improve starting parameters for optimization -- e.g. starting
