@@ -12,6 +12,8 @@ Notebooks and analyses of dipole fitting for LSST
    * Note that the sources may not be detected (or their fluxes
      inaccurate) in the the original calexps. — but in many (most?)
      cases they will be.
+   * At least incoporate centroids/fluxes from original pre-subtracted
+     images as prior/constraint on dipole fit.
 4. can use center-of-mass measurements of pos/neg peaks. The distance
    will be overestimated but the orientation will be correct? Then PSF
    fit is just a 1-d fit (distance). THIS IS A CLAIM AND NEEDS TO BE
