@@ -18,14 +18,13 @@ matplotlib.rcParams['figure.figsize'] = (12.0, 6.0)
 
 ### Degeneracy between faint, widely-separated dipole and bright, close dipole:
 
-<a id='figure1'></a>
-
 
 ```python
 if True:
     x = np.arange(-5,5, 0.001)
-    plt.plot(x, 1. * (norm.pdf(x, -0.5, 1) - norm.pdf(x, 0.5, 1)))   ## faint, distant diple
-    plt.plot(x, 5. * (norm.pdf(x, -0.1, 1) - norm.pdf(x, 0.1, 1)))   ## bright, close dipole
+    plt.plot(x, 1. * (norm.pdf(x, 0.5, 1) - norm.pdf(x, -0.5, 1)))   ## faint, distant diple
+    plt.plot(x, 5. * (norm.pdf(x, 0.1, 1) - norm.pdf(x, -0.1, 1)))   ## bright, close dipole
+    plt.legend(['amp=1; sep=1', 'amp=5; sep=0.2'])
     plt.show()
 ```
 
@@ -41,16 +40,17 @@ from ipywidgets import interact
 
 def do_plot(amp1=1., sep1=1., amp2=5., sep2=0.2, show_components=True):
     x = np.arange(-5, 5, 0.1)
-    plt.plot(x, amp1 * (norm.pdf(x, -sep1/2., 1) - norm.pdf(x, sep1/2., 1)), color='red')   ## faint, distant diple
-    plt.plot(x, amp2 * (norm.pdf(x, -sep2/2., 1) - norm.pdf(x, sep2/2., 1)), color='blue')   ## bright, close dipole
+    plt.plot(x, amp1 * (norm.pdf(x, sep1/2., 1) - norm.pdf(x, -sep1/2., 1)), color='red')   ## faint, distant diple
+    plt.plot(x, amp2 * (norm.pdf(x, sep2/2., 1) - norm.pdf(x, -sep2/2., 1)), color='blue')   ## bright, close dipole
     if show_components:
-        plt.plot(x, amp1 *  norm.pdf(x, -sep1/2., 1), linestyle='dashed', color='red')
-        plt.plot(x, amp1 * -norm.pdf(x,  sep1/2., 1), linestyle='dashed', color='red')
-        plt.plot(x, amp2 *  norm.pdf(x, -sep2/2., 1), linestyle='dashed', color='blue')
-        plt.plot(x, amp2 * -norm.pdf(x,  sep2/2., 1), linestyle='dashed', color='blue')
+        plt.plot(x, amp1 * -norm.pdf(x, -sep1/2., 1), linestyle='dashed', color='red')
+        plt.plot(x, amp1 *  norm.pdf(x,  sep1/2., 1), linestyle='dashed', color='red')
+        plt.plot(x, amp2 * -norm.pdf(x, -sep2/2., 1), linestyle='dashed', color='blue')
+        plt.plot(x, amp2 *  norm.pdf(x,  sep2/2., 1), linestyle='dashed', color='blue')
         
     plt.plot([-sep1, sep1], [0,0], 'ro')
     plt.plot([-sep2, sep2], [0,0], 'bo')
+    plt.legend(['amp=%.2f; sep=%.2f' % (amp1, sep1), 'amp=%.2f; sep=%.2f' % (amp2, sep2)])
     plt.show()
     
 ##do_plot()
