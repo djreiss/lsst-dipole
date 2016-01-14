@@ -58,6 +58,7 @@ part of the LSST pipelines?
      positive and negative flux values)
    * parameters are currently unconstrained during optimization
      (e.g. can constrain flux to be > 0)
+7. It is also possible to do the fitting in "pure" python (I used `lmfit` which is a wrapper around `scipy.optimize`), and my implementation is about 50% faster than the `C++` version in `ip_diffim`.
 
 NOTES:
 
