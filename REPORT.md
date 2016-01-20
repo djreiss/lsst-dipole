@@ -1,8 +1,16 @@
-# Dipole measurement and classification
+## Dipole measurement and classification
 
 ---
 
-[Additional random dipole characterization thoughts](README.md) in no particular order.
+* [Additional random dipole characterization thoughts](README.md) in no particular order.
+
+---
+
+- [Summary of current implementation (`ip_diffim`)](#summary-of-current-implementation-ip_diffim)
+- [Putative issues with the `ip_diffim` PSF fitting algorithm](#putative-issues-with-the-ip_diffim-psf-fitting-algorithm)
+- [Evaluation of dipole fitting accuracy](#evaluation-of-dipole-fitting-accuracy)
+- [Generic dipole fitting complications](#generic-dipole-fitting-complications)
+- [Possible solutions and tests](#possible-solutions-and-tests)
 
 ---
 
