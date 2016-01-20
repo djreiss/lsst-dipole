@@ -59,7 +59,7 @@ Why is it slow? Thoughts on possible reasons (they will need to be evaluated fur
 3. Perhaps the starting parameters (derived from the naive coordinates) could be made more accurate. At least it looks like the starting flux values are being initialized from the peak pixel value in the footprint, rather than (an estimate of) the source flux.
 4. `chi2` is computed over the entire footprint bounding box (confirm this?) rather than the inner 2,3,4, or 5 sigma of the PSF.
 5. Some calculations are computed each time during minimization (in `chi2` function) that can be moved outside (not sure if these calc's are really expensive though).
-6. There are no constraints on the parameters (e.g. `fluxPos` > 0; `fluxNeg` < 0; possibly `fluxPos` = `fluxNeg`; centroid locations, etc.)
+6. There are no constraints on the parameters (e.g. `fluxPos` > 0; `fluxNeg` < 0; possibly `fluxPos` = `fluxNeg`; centroid locations, etc.). Fixing this is also likely to increase fitting accuracy (see below).
 
 Note: It seems that the dipole fit is a lot faster for dipoles of greater separation than for those that are closer (it seems the optimization [via `minuit`] takes longer to converge).
 
