@@ -7,8 +7,8 @@
 ---
 
 - [Summary of current implementation (`ip_diffim`)](#summary-of-current-implementation-ip_diffim)
-- [Putative issues with the `ip_diffim` PSF fitting algorithm](#putative-issues-with-the-ip_diffim-psf-fitting-algorithm)
 - [Evaluation of dipole fitting accuracy](#evaluation-of-dipole-fitting-accuracy)
+- [Putative issues with the `ip_diffim` PSF fitting algorithm](#putative-issues-with-the-ip_diffim-psf-fitting-algorithm)
 - [Generic dipole fitting complications](#generic-dipole-fitting-complications)
 - [Possible solutions and tests](#possible-solutions-and-tests)
 
@@ -23,6 +23,22 @@ The current dipole measurement task is intialized by `SourceDetection` being per
 least squares minimization.
 
 The two measurements are performed independently and do not (AFAICT) inform each other; in other words the centroids and fluxes from the naive dipole measurement are not used to initialize the starting parameters in the least-squares minimization.
+
+---
+### Evaluation of dipole fitting accuracy
+
+We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. Interesting findings include:
+
+1. The "pure python" optimization is nearly twice as fast as the `ip_diffim` implementation. Some of the reasons for this may lie in putative `ip_diffim` issues described above.
+2. Using similar constraints (i.e., none), the "pure python" optimization results in model fits with similar characteristics to those of the `ip_diffim` code. For example, a plot of recovered x-coordinate of dipoles of fixed flux with gradually increasing separations is shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png):
+
+![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png)
+
+A primary result of comparisons of both dipole fitting routines showed that if unconstrained, they would have difficulty finding accurate fluxes (and separations) at separations smaller than ~1 FWHM. This is best shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png), which shows the fitted dipole fluxes as a function of dipole separation for a number of realizations per separation (and input flux of 3000).
+
+![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png)
+
+Below we investigate this issue and find that it arises from the extreme covariance between the dipole separation and flux parameters, which exacerbates the optimizers at low signal-to-noise.
 
 ---
 
@@ -40,22 +56,6 @@ Why is it slow? Thoughts on possible reasons (they will need to be evaluated fur
 6. There are no constraints on the parameters (e.g. `fluxPos` > 0; `fluxNeg` < 0; possibly `fluxPos` = `fluxNeg`; centroid locations, etc.)
 
 Note: It seems that the dipole fit is a lot faster for dipoles of greater separation than for those that are closer (it seems the optimization [`minuit`]) takes longer to converge).
-
----
-### Evaluation of dipole fitting accuracy
-
-We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. Interesting findings include:
-
-1. The "pure python" optimization is nearly twice as fast as the `ip_diffim` implementation. Some of the reasons for this may lie in putative `ip_diffim` issues described above.
-2. Using similar constraints (i.e., none), the "pure python" optimization results in model fits with similar characteristics to those of the `ip_diffim` code. For example, a plot of recovered x-coordinate of dipoles of fixed flux with gradually increasing separations is shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png):
-
-![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png)
-
-A primary result of comparisons of both dipole fitting routines showed that if unconstrained, they would have difficulty finding accurate fluxes (and separations) at separations smaller than ~1 FWHM. This is best shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png), which shows the fitted dipole fluxes as a function of dipole separation for a number of realizations per separation (and input flux of 3000).
-
-![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png)
-
-Below we investigate this issue and find that it arises from the extreme covariance between the dipole separation and flux parameters, which exacerbates the optimizers at low signal-to-noise.
 
 ---
 
