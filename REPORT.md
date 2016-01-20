@@ -130,17 +130,20 @@ A contour plot of confidence interval contours shows a similar degeneracy as tha
 
 These contours look surprisingly similar for fits to closely-separated and widely-separated dipoles of (otherwise) similar parameterization (see the [notebook](notebooks/7c.%20dipole%20fit%20error%20contours.ipynb) for more).
 
-After updating the dipole fit code to include the pre-subtraction images (again with 5% weighting), as shown in [this notebook](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit.ipynb), the fits once again improves. Here is the original result:
+After updating the dipole fit code to include the pre-subtraction images (again with 5% weighting), as shown in [this notebook](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit.ipynb), the fits once again improves. 
+
+<!--Here is the original result:
 
 <a name="figure11"></a>
 <img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_39_2.png" width="50%"><img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_40_2.png" width="50%">
+-->
 
-And the new (constrained) result, fitting to the same simulated dipole data (note the difference in axis limits):
+The new (constrained) result, fitting to the same simulated dipole data (note the difference in axis limits):
 
 <a name="figure12"></a>
 <img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_42_2.png" width="50%"><img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_43_2.png" width="50%">
 
-Adding the new constraining data to the fit unsurprisingly improves the flux fits for a variety of dipole separations (the figure [below](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png) may be compared with the similar one shown [above](#figure2), generated without any constraint).
+Adding the constraining data to the fit unsurprisingly improves the flux fits for a variety of dipole separations (the figure [below](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png) may be compared with the similar one shown [above](#figure2), generated without any constraint).
 
 <a name="figure13"></a>
 ![Figure 13](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png)
