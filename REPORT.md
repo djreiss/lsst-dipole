@@ -61,7 +61,7 @@ Why is it slow? Thoughts on possible reasons (they will need to be evaluated fur
 5. Some calculations are computed each time during minimization (in `chi2` function) that can be moved outside (not sure if these calc's are really expensive though).
 6. There are no constraints on the parameters (e.g. `fluxPos` > 0; `fluxNeg` < 0; possibly `fluxPos` = `fluxNeg`; centroid locations, etc.)
 
-Note: It seems that the dipole fit is a lot faster for dipoles of greater separation than for those that are closer (it seems the optimization [`minuit`]) takes longer to converge).
+Note: It seems that the dipole fit is a lot faster for dipoles of greater separation than for those that are closer (it seems the optimization [via `minuit`] takes longer to converge).
 
 ---
 
@@ -123,15 +123,10 @@ and here is the [least-squares model fit and residuals](notebooks/7c.%20dipole%2
 <a name="figure8"></a>
 ![Figure 8](notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_10_4.png)
 
-A contour plot of confidence interval contours shows a similar degeneracy as that described above, here between dipole flux and x-coordinate of the positive dipole lobe:
+A contour plot of confidence interval contours shows a similar degeneracy as that described above, here between dipole flux and x-coordinate of the positive dipole lobe (below, left). This is also seen in the covariance between x- and y-coordinate of the positive lobe centroid, which points generally toward the dipole centroid (below, right):
 
 <a name="figure9"></a>
-<img src="notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_32_1.png" width="60%">
-
-This is also seen in the covariance between x- and y-coordinate of the positive lobe centroid, which points generally toward the dipole centroid:
-
-<a name="figure10"></a>
-<img src="notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_31_1.png" width="60%">
+<img src="notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_32_1.png" width="50%"><img src="notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_31_1.png" width="50%">
 
 These contours look surprisingly similar for fits to closely-separated and widely-separated dipoles of (otherwise) similar parameterization (see the [notebook](notebooks/7c.%20dipole%20fit%20error%20contours.ipynb) for more).
 
