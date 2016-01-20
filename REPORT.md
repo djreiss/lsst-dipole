@@ -1,5 +1,13 @@
 # Dipole measurement and classification
 
+---
+
+[Additional random dipole characterization thoughts](README.md) in no particular order.
+
+---
+
+### Summary of current implementation (`ip_diffim`)
+
 The current dipole measurement task is intialized by `SourceDetection` being performed in both positive and negative modes to identify significant pos. and neg. sources. These pos. and neg. source catalogs are merged to identify candidate dipoles with overlapping footprints. The measurement task then performs two separate measurements on these dipole candidates:
 
 1. A "naive" dipole measurement which computes a 3x3 weighted moment around the nominal centroids of each peak in the Source Footprint. It estimates the pos./neg. fluxes as pos./neg. sums of the pixel values within the merged footprint.
@@ -65,6 +73,8 @@ Here are the error contours, where the blue dot indicates the input parameters (
 
 <img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_8_2.png" width="60%">
 
+#### Possible solutions and tests
+
 This degeneracy is a big problem if we are going to fit dipole parameters using the subtracted data alone. Three possible solutions are:
 
 1. Use starting parameters and parameter bounds based on measurements from the pre-subtracted images (obs. and template) to constrain the dipole fit.
@@ -116,6 +126,3 @@ Adding the new constraining data to the fit unsurprisingly improves the flux fit
 ![Figure X](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png)
 
 ---
----
-
-[Additional random dipole characterization thoughts](README.md).
