@@ -1,3 +1,50 @@
+# Dipole measurement and classification
+
+The current dipole measurement task is intialized by `SourceDetection` being performed in both positive and negative modes to identify significant pos. and neg. sources. These pos. and neg. source catalogs are merged to identify candidate dipoles with overlapping footprints. The measurement task then performs two separate measurements on these dipole candidates:
+
+1. A "naive" dipole measurement which computes a 3x3 weighted moment around the nominal centroids of each peak in the Source Footprint. It estimates the pos./neg. fluxes as pos./neg. sums of the pixel values within the merged footprint.
+2. Measurements resulting from a joint-Psf model fit to the negative and positive lobe simultaneously. This fit simultaneously solves for the negative and positive lobe centroids and fluxes using non-linear
+least squares minimization.
+
+The two measurements are performed independently and do not (AFAICT) inform each other; in other words the centroids and fluxes from the naive dipole measurement are not used to initialize the starting parameters in the least-squares minimization.
+
+---
+
+### Putative issues with the `ip_diffim` PSF fitting algorithm
+
+The PSF fitting is slow. It seems to take ~60MS for some fits (especially for closely-separated dipoles).
+
+Why is it slow? Thoughts on possible reasons (they will need to be evaluated further if deemed important):
+
+1. `PsfDipoleFlux::chi2()` computes the PSF *image* (pos. and neg.) to compute the model, rather than using something like `afwMath.DoubleGaussianFunction2D()`. Or if that is not possible (may need to use a pixelated input PSF) then potentially speed up the computation of the dipole model image (right now it uses multiple vectorized `afw::Image` function calls).
+2. It spends a lot of time floating around near the minimum and perhaps can be cut off more quickly (note this may be exacerbated by (1.)).
+3. Perhaps the starting parameters (derived from the naive coordinates) could be made more accurate. At least it looks like the starting flux values are being initialized from the peak pixel value in the footprint, rather than (an estimate of) the source flux.
+4. `chi2` is computed over the entire footprint bounding box (confirm this?) rather than the inner 2,3,4, or 5 sigma of the PSF.
+5. Some calculations are computed each time during minimization (in `chi2` function) that can be moved outside (not sure if these calc's are really expensive though).
+6. There are no constraints on the parameters (e.g. `fluxPos` > 0; `fluxNeg` < 0; possibly `fluxPos` = `fluxNeg`; centroid locations, etc.)
+
+Note: It seems that the dipole fit is a lot faster for dipoles of greater separation than for those that are closer (it seems the optimization [`minuit`]) takes longer to converge).
+
+---
+### Evaluation of dipole fitting accuracy
+
+We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. Interesting findings include:
+
+1. The "pure python" optimization is nearly twice as fast as the `ip_diffim` implementation. Some of the reasons for this may lie in putative `ip_diffim` issues described above.
+2. Using similar constraints (i.e., none), the "pure python" optimization results in model fits with similar characteristics to those of the `ip_diffim` code. For example, a plot of recovered x-coordinate of dipoles of fixed flux with gradually increasing separations is shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png):
+
+![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png)
+
+A primary result of comparisons of both dipole fitting routines showed that if unconstrained, they would have difficulty finding accurate fluxes (and separations) at separations smaller than ~1 FWHM. This is best shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png), which shows the fitted dipole fluxes as a function of dipole separation for a number of realizations per separation (and input flux of 3000).
+
+![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png)
+
+Below we investigate this issue and find that it arises from the extreme covariance between the dipole separation and flux parameters, which exacerbates the optimizers at low signal-to-noise.
+
+---
+
+### Generic dipole fitting complications
+
 There is a degeneracy in dipole fitting between closely-separated dipoles from bright sources and widely-separated dipoles from faint sources. This is further explored using 1-d simulated dipoles in [this notebook](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise.ipynb).
 
 [Here](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png) is an example:
@@ -5,14 +52,14 @@ There is a degeneracy in dipole fitting between closely-separated dipoles from b
 <!--
 ![Figure 1](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png)
 -->
-<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png" width="70%">
+<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png" width="60%">
 
 There are many such examples, and this strong covariance between amplitude (or flux) and dipole separation is most easiest shown by plotting error contours from a [least-squares fit to simulated 1-d dipole data](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png):
 
 <!--
 ![Figure2](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png)
 -->
-<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png" width="70%">
+<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png" width="60%">
 
 Here are the error contours, where the blue dot indicates the input parameters (used to generate the data), the yellow dot shows the starting parameters for the minimization and the green dot indicates the least-squares parameters:
 
