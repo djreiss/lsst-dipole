@@ -6,15 +6,15 @@
 
 ---
 
-- [Summary of current implementation (`ip_diffim`)](#summary-of-current-implementation-ip_diffim)
+- [Summary of current implementation (`ip_diffim` `dipoleMeasurement`)](#summary-of-current-implementation-ip_diffim)
 - [Evaluation of dipole fitting accuracy](#evaluation-of-dipole-fitting-accuracy)
-- [Putative issues with the `ip_diffim` PSF fitting algorithm](#putative-issues-with-the-ip_diffim-psf-fitting-algorithm)
+- [Putative issues with the `dipoleMeasurement` PSF fitting algorithm](#putative-issues-with-the-ip_diffim-psf-fitting-algorithm)
 - [Generic dipole fitting complications](#generic-dipole-fitting-complications)
 - [Possible solutions and tests](#possible-solutions-and-tests)
 
 ---
 
-### Summary of current implementation (`ip_diffim`)
+### Summary of current implementation (`dipoleMeasurement`)
 
 The current dipole measurement task is intialized by `SourceDetection` being performed in both positive and negative modes to identify significant pos. and neg. sources. These pos. and neg. source catalogs are merged to identify candidate dipoles with overlapping footprints. The measurement task then performs two separate measurements on these dipole candidates:
 
@@ -29,13 +29,13 @@ The two measurements are performed independently and do not (AFAICT) inform each
 
 We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. Interesting findings include:
 
-1. The "pure python" optimization is nearly twice as fast as the `ip_diffim` implementation. Some of the reasons for this may lie in putative `ip_diffim` issues described above.
-2. Using similar constraints (i.e., none), the "pure python" optimization results in model fits with similar characteristics to those of the `ip_diffim` code. For example, a plot of recovered x-coordinate of dipoles of fixed flux with gradually increasing separations is shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png):
+1. The "pure python" optimization is nearly twice as fast as the `dipoleMeasurement` implementation. Some of the reasons for this may lie in putative `dipoleMeasurement` issues described above.
+2. Using similar constraints (i.e., none), the "pure python" optimization results in model fits with similar characteristics to those of the `dipoleMeasurement` code. For example, a plot of recovered x-coordinate of dipoles of fixed flux with gradually increasing separations is shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png):
 
 <a name="figure1"></a>
 ![Figure 1](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png)
 
-Note in all figures, including this one, "New" refers to the "pure python" dipole fitting routine, and "Old" refers to the fitting in the `ip_diffim` code.
+Note in all figures, including this one, "New" refers to the "pure python" dipole fitting routine, and "Old" refers to the fitting in the existing `dipoleMeasurement` code.
 
 A primary result of comparisons of both dipole fitting routines showed that if unconstrained, they would have difficulty finding accurate fluxes (and separations) at separations smaller than ~1 FWHM. This is best shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png), which shows the fitted dipole fluxes as a function of dipole separation for a number of realizations per separation (and input flux of 3000).
 
@@ -48,7 +48,7 @@ Below we investigate this issue and find that it arises from the extreme covaria
 
 ---
 
-### Putative issues with the `ip_diffim` PSF fitting algorithm
+### Putative issues with the `dipoleMeasurement` PSF fitting algorithm
 
 The PSF fitting is slow. It seems to take ~60MS for some fits (especially for closely-separated dipoles).
 
@@ -107,7 +107,7 @@ As an example, I performed a fit to the same data as shown above, but included t
 
 Unsurprisingly, including the original data serves to significantly constrain the fit and reduce the degeneracy.
 
-I believe that this is a possible way forward in the dipole characterization task for `ip_diffim`. The primary drawback is if the source falls on a bright background or a background with a steep gradient - which is what we do the `imDiff` for anyway. This will also require passing the two pre-subtraction planes (and their variance planes) to the dipole characterization task.
+I believe that this is a possible way forward in the dipole characterization task in `dipoleMeasurement`. The primary drawback is if the source falls on a bright background or a background with a steep gradient - which is what we do the `imDiff` for anyway. This will also require passing the two pre-subtraction planes (and their variance planes) to the dipole characterization task.
 
 *Recommendation:* Test the dipole fitting including using the additional (pre-subtraction) data planes, including simulating bright and steep-gradient backgrounds. Investigate the tolerance of very low weighting (5 to 10%) on the pre-subtraction planes in order to ensure that we are "mostly" fitting on the imDiff plane.
 
@@ -152,6 +152,6 @@ Adding the constraining data to the fit unsurprisingly improves the flux fits fo
 
 *Additional recommendations and tests*:
 
-1. investigate the robustness of this updated fitting method, including variable backgrounds (with large gradients) that are removed in the image difference but bright and noisy in the template/science images.
-2. investigate adding these constraints to the `ip_diffim` code, including parameter windowing. *This will require refactoring of `diffIm` code to pass pre-subtraction images to `dipoleMeasurement`*.
-3. complete refactoring of existing `dipoleMeasurement` code.
+1. complete refactoring of existing `dipoleMeasurement` code.
+2. investigate the robustness of this updated fitting method, including variable backgrounds (with large gradients) that are removed in the image difference but bright and noisy in the template/science images.
+2. investigate adding these constraints to the existing `dipoleMeasurement` code, including parameter windowing. *This will require refactoring of `diffIm` code to pass pre-subtraction images to `dipoleMeasurement`*.
