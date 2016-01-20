@@ -32,11 +32,17 @@ We implemented a faux dipole generation routine (separate from lsst code, i.e., 
 1. The "pure python" optimization is nearly twice as fast as the `ip_diffim` implementation. Some of the reasons for this may lie in putative `ip_diffim` issues described above.
 2. Using similar constraints (i.e., none), the "pure python" optimization results in model fits with similar characteristics to those of the `ip_diffim` code. For example, a plot of recovered x-coordinate of dipoles of fixed flux with gradually increasing separations is shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png):
 
-![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png)
+<a name="figure1"></a>
+![Figure 1](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png)
+
+Note in all figures, including this one, "New" refers to the "pure python" dipole fitting routine, and "Old" refers to the fitting in the `ip_diffim` code.
 
 A primary result of comparisons of both dipole fitting routines showed that if unconstrained, they would have difficulty finding accurate fluxes (and separations) at separations smaller than ~1 FWHM. This is best shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png), which shows the fitted dipole fluxes as a function of dipole separation for a number of realizations per separation (and input flux of 3000).
 
-![Figure X](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png)
+<a name="figure2"></a>
+![Figure 2](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png)
+
+Here, 'pos'itive and 'neg'ative lobe parameters are shown side-by-side in the same (positive) flux axis.
 
 Below we investigate this issue and find that it arises from the extreme covariance between the dipole separation and flux parameters, which exacerbates the optimizers at low signal-to-noise.
 
@@ -68,6 +74,7 @@ There is a degeneracy in dipole fitting between closely-separated dipoles from b
 <!--
 ![Figure 1](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png)
 -->
+<a name="figure3"></a>
 <img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png" width="60%">
 
 There are many such examples, and this strong covariance between amplitude (or flux) and dipole separation is most easiest shown by plotting error contours from a [least-squares fit to simulated 1-d dipole data](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png):
@@ -75,10 +82,12 @@ There are many such examples, and this strong covariance between amplitude (or f
 <!--
 ![Figure2](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png)
 -->
+<a name="figure4"></a>
 <img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png" width="60%">
 
 Here are the error contours, where the blue dot indicates the input parameters (used to generate the data), the yellow dot shows the starting parameters for the minimization and the green dot indicates the least-squares parameters:
 
+<a name="figure5"></a>
 <img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_8_2.png" width="60%">
 
 #### Possible solutions and tests
@@ -93,6 +102,7 @@ It is noted that these solutions will not help in cases of dipoles detected on t
 
 As an example, I performed a fit to the same data as shown above, but included the "pre-subtracted" data as two additional planes. In this example, I chose to down-weight the pre-subtracted data points to 1/20th (5%) of the subtracted data points for the least-squares fit. The resulting contours are [here](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_16_1.png):
 
+<a name="figure6"></a>
 <img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_16_1.png" width="60%">
 
 Unsurprisingly, including the original data serves to significantly constrain the fit and reduce the degeneracy.
@@ -105,32 +115,39 @@ I believe that this is a possible way forward in the dipole characterization tas
 
 This same degeneracy is seen in simulated 2-d dipoles, as shown in [this notebook](notebooks/7c.%20dipole%20fit%20error%20contours.ipynb). First, a brief overview. Here is [a simulated 2-d dipole](notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20%20contours_10_3.png) and the footprints for positive and negative detected sources in the image:
 
-![Figure 4](notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_10_3.png)
+<a name="figure7"></a>
+![Figure 7](notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_10_3.png)
 
 and here is the [least-squares model fit and residuals](notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_10_4.png):
 
-![Figure 5](notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_10_4.png)
+<a name="figure8"></a>
+![Figure 8](notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_10_4.png)
 
 A contour plot of confidence interval contours shows a similar degeneracy as that described above, here between dipole flux and x-coordinate of the positive dipole lobe:
 
+<a name="figure9"></a>
 <img src="notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_32_1.png" width="60%">
 
 This is also seen in the covariance between x- and y-coordinate of the positive lobe centroid, which points generally toward the dipole centroid:
 
+<a name="figure10"></a>
 <img src="notebooks/7c.%20dipole%20fit%20error%20contours_files/7c.%20dipole%20fit%20error%20contours_31_1.png" width="60%">
 
 These contours look surprisingly similar for fits to closely-separated and widely-separated dipoles of (otherwise) similar parameterization (see the [notebook](notebooks/7c.%20dipole%20fit%20error%20contours.ipynb) for more).
 
 After updating the dipole fit code to include the pre-subtraction images (again with 5% weighting), as shown in [this notebook](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit.ipynb), the fits once again improves. Here is the original result:
 
+<a name="figure11"></a>
 <img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_39_2.png" width="50%"><img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_40_2.png" width="50%">
 
 And the new (constrained) result, fitting to the same simulated dipole data (note the difference in axis limits):
 
+<a name="figure12"></a>
 <img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_42_2.png" width="50%"><img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_43_2.png" width="50%">
 
-Adding the new constraining data to the fit unsurprisingly improves the flux fits for a variety of dipole separations (the figure [below](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png) may be compared with the similar one shown [above](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_23_1.png), generated without any constraint).
+Adding the new constraining data to the fit unsurprisingly improves the flux fits for a variety of dipole separations (the figure [below](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png) may be compared with the similar one shown [above](#figure2), generated without any constraint).
 
-![Figure X](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png)
+<a name="figure13"></a>
+![Figure 13](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png)
 
 ---
