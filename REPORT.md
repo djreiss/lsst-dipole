@@ -149,3 +149,9 @@ Adding the constraining data to the fit unsurprisingly improves the flux fits fo
 ![Figure 13](notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_21_1.png)
 
 ---
+
+*Additional recommendations and tests*:
+
+1. investigate the robustness of this updated fitting method, including variable backgrounds (with large gradients) that are removed in the image difference but bright and noisy in the template/science images.
+2. investigate adding these constraints to the `ip_diffim` code, including parameter windowing. *This will require refactoring of `diffIm` code to pass pre-subtraction images to `dipoleMeasurement`*.
+3. complete refactoring of existing `dipoleMeasurement` code.
