@@ -1,7 +1,5 @@
 ## Dipole measurement and classification
-
 ---
-
 * [Additional random dipole characterization thoughts](README.md) in no particular order.
 
 ---
@@ -27,7 +25,9 @@ The two measurements are performed independently and do not (AFAICT) inform each
 ---
 ### Evaluation of dipole fitting accuracy
 
-We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. Interesting findings include:
+We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. *TBD: use `iminuit` package instead? Possibly more robust and/or more efficient?*
+
+Interesting findings include:
 
 1. The "pure python" optimization is nearly twice as fast as the `dipoleMeasurement` implementation. Some of the reasons for this may lie in putative `dipoleMeasurement` issues described above.
 2. Using similar constraints (i.e., none), the "pure python" optimization results in model fits with similar characteristics to those of the `dipoleMeasurement` code. For example, a plot of recovered x-coordinate of dipoles of fixed flux with gradually increasing separations is shown [here](notebooks/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_files/7b.%20test%20new%20(fixed!)%20and%20ip_diffim%20dipole%20fitting%20on%20same%20sources-Copy3%20(more%20realistic%20noise)_20_2.png):
@@ -67,28 +67,28 @@ Note: It seems that the dipole fit is a lot faster for dipoles of greater separa
 
 ### Generic dipole fitting complications
 
-There is a degeneracy in dipole fitting between closely-separated dipoles from bright sources and widely-separated dipoles from faint sources. This is further explored using 1-d simulated dipoles in [this notebook](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise.ipynb).
+There is a degeneracy in dipole fitting between closely-separated dipoles from bright sources and widely-separated dipoles from faint sources. This is further explored using 1-d simulated dipoles in [this notebook](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise.ipynb).
 
-[Here](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png) is an example:
+[Here](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png) is an example:
 
 <!--
-![Figure 1](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png)
+![Figure 1](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png)
 -->
 <a name="figure3"></a>
-<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png" width="60%">
+<img src="notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png" width="60%">
 
-There are many such examples, and this strong covariance between amplitude (or flux) and dipole separation is most easiest shown by plotting error contours from a [least-squares fit to simulated 1-d dipole data](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png):
+There are many such examples, and this strong covariance between amplitude (or flux) and dipole separation is most easiest shown by plotting error contours from a [least-squares fit to simulated 1-d dipole data](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png):
 
 <!--
-![Figure2](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png)
+![Figure2](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png)
 -->
 <a name="figure4"></a>
-<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png" width="60%">
+<img src="notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png" width="60%">
 
 Here are the error contours, where the blue dot indicates the input parameters (used to generate the data), the yellow dot shows the starting parameters for the minimization and the green dot indicates the least-squares parameters:
 
 <a name="figure5"></a>
-<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_8_2.png" width="60%">
+<img src="notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_8_2.png" width="60%">
 
 #### Possible solutions and tests
 
@@ -100,10 +100,10 @@ This degeneracy is a big problem if we are going to fit dipole parameters using 
 
 It is noted that these solutions will not help in cases of dipoles detected on top of bright backgrounds (or backgrounds with large gradients), such as cases of a faint dipole superimposed on a bright-ish background galaxy. But these cases will be rare, and I believe we can adjust the weighting of the pre-subtracted image data (i.e., in [2] above) to compensate (see below).
 
-As an example, I performed a fit to the same data as shown above, but included the "pre-subtracted" data as two additional planes. In this example, I chose to down-weight the pre-subtracted data points to 1/20th (5%) of the subtracted data points for the least-squares fit. The resulting contours are [here](notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_16_1.png):
+As an example, I performed a fit to the same data as shown above, but included the "pre-subtracted" data as two additional planes. In this example, I chose to down-weight the pre-subtracted data points to 1/20th (5%) of the subtracted data points for the least-squares fit. The resulting contours are [here](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_16_1.png):
 
 <a name="figure6"></a>
-<img src="notebooks/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%202-d%20dipole%20plotting%20-%20more%20realistic%20noise_16_1.png" width="60%">
+<img src="notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_16_1.png" width="60%">
 
 Unsurprisingly, including the original data serves to significantly constrain the fit and reduce the degeneracy.
 
