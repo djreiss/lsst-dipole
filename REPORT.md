@@ -25,7 +25,7 @@ The two measurements are performed independently and do not (AFAICT) inform each
 ---
 ### Evaluation of dipole fitting accuracy
 
-We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. *TBD: use `iminuit` package instead? Possibly more robust and/or more efficient?*
+We implemented a faux dipole generation routine (separate from lsst code, i.e., using `numpy`) with realistic non-background-limited (Poisson) noise. We then implemented a separate 2-D dipole fitting function in "pure" python (we used the `lmfit` package, which is basically a wrapper around `scipy.optimize.leastsq()`). The dipole (and the function which is minimized) is generated using a 2-D double Gaussian. *TBD: investigate [`iminuit`](http://nbviewer.jupyter.org/github/iminuit/iminuit/blob/master/tutorial/tutorial.ipynb#) package - possibly more robust and/or more efficient minimization?*
 
 Interesting findings include:
 
