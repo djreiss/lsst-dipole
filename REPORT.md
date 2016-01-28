@@ -1,3 +1,8 @@
+This report is now deprecated. The final version may be found at
+http://dmtn-007.lsst.io
+
+
+<!--
 ## Dipole measurement and classification
 ---
 * [Additional random dipole characterization thoughts](README.md) in no particular order.
@@ -73,7 +78,7 @@ There is a degeneracy in dipole fitting between closely-separated dipoles from b
 
 <!--
 ![Figure 1](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png)
--->
+
 <a name="figure3"></a>
 <img src="notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_4_0.png" width="60%">
 
@@ -81,7 +86,7 @@ There are many such examples, and this strong covariance between amplitude (or f
 
 <!--
 ![Figure2](notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png)
--->
+
 <a name="figure4"></a>
 <img src="notebooks/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_files/8a.%20simple%201d%20dipole%20plotting%20-%20more%20realistic%20noise_7_2.png" width="60%">
 
@@ -136,7 +141,7 @@ After updating the dipole fit code to include the pre-subtraction images (again 
 
 <a name="figure11"></a>
 <img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_39_2.png" width="50%"><img src="notebooks/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_files/8b.%20include%20down-weighted%20pre-subtraction%20image%20%22planes%22%20to%20constrain%202-d%20dipole%20fit_40_2.png" width="50%">
--->
+
 
 The new (constrained) result, fitting to the same simulated dipole data (note the difference in axis limits):
 
@@ -155,3 +160,4 @@ Adding the constraining data to the fit unsurprisingly improves the flux fits fo
 1. complete refactoring of existing `dipoleMeasurement` code.
 2. investigate the robustness of this updated fitting method, including variable backgrounds (with large gradients) that are removed in the image difference but bright and noisy in the template/science images.
 2. investigate adding these constraints to the existing `dipoleMeasurement` code, including parameter windowing. *This will require refactoring of `diffIm` code to pass pre-subtraction images to `dipoleMeasurement`*.
+-->
