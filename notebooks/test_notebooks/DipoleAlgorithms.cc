@@ -145,6 +145,33 @@ void NaiveDipoleCentroid::measure(
                                                            getPositiveKeys() :
                                                            getNegativeKeys()));
     }
+
+    mergeCentroids(source);
+
+}
+
+void NaiveDipoleCentroid::mergeCentroids(afw::table::SourceRecord & source) const {
+
+    float pos_x, pos_y;
+    float neg_x, neg_y;
+
+    pos_x = source.get(getPositiveKeys().getX());
+    pos_y = source.get(getPositiveKeys().getY());
+
+    neg_x = source.get(getNegativeKeys().getX());
+    neg_y = source.get(getNegativeKeys().getY());
+
+    if(std::isfinite(pos_x) && std::isfinite(pos_y) &&
+       std::isfinite(neg_x) && std::isfinite(neg_y)) {
+        source.set(getCenterKeys().getX(), 0.5*(pos_x + neg_x));
+        source.set(getCenterKeys().getY(), 0.5*(pos_y + neg_y));
+    } else if (std::isfinite(pos_x) && std::isfinite(pos_y)) {
+        source.set(getCenterKeys().getX(), pos_x);
+        source.set(getCenterKeys().getY(), pos_y);
+    } else {
+        source.set(getCenterKeys().getX(), neg_x);
+        source.set(getCenterKeys().getY(), neg_y);
+    }
 }
 
 void NaiveDipoleCentroid::fail(afw::table::SourceRecord & measRecord,
@@ -230,6 +257,7 @@ void NaiveDipoleFlux::fail(afw::table::SourceRecord & measRecord, meas::base::Me
     _flagHandler.handleFailure(measRecord, error);
 }
 
+int nFuncEvals = 0;
 
 /**
  * Class to minimize PsfDipoleFlux; this is the object that Minuit minimizes
@@ -246,7 +274,9 @@ public:
                                     _psfDipoleFlux(psfDipoleFlux),
                                     _source(source),
                                     _exposure(exposure)
-    {}
+    {
+       nFuncEvals = 0;
+    }
     double Up() const { return _errorDef; }
     void setErrorDef(double def) { _errorDef = def; }
     int getNpar() const { return _nPar; }
@@ -271,13 +301,11 @@ public:
                                                         posCenterX, posCenterY, posFlux);
         double chi2 = fit.first;
         int nPix = fit.second;
-
-        //std::cout << posCenterX << " " << posCenterY << " " << posFlux << std::endl <<
-        //   "        " << negCenterX << " " << negCenterY << " " << negFlux << std::endl;
-
         if (nPix > _maxPix) {
             return _bigChi2;
         }
+
+        nFuncEvals ++;
 
         return chi2;
     }
@@ -306,6 +334,11 @@ std::pair<double,int> PsfDipoleFlux::chi2(
 
     CONST_PTR(afw::detection::Footprint) footprint = source.getFootprint();
 
+#if 0
+    std::cout <<            negCenterX << " " << negCenterY << " " << negFlux << std::endl;
+    std::cout << "     " << posCenterX << " " << posCenterY << " " << posFlux << std::endl;
+#endif
+    
     /*
      * Fit for the superposition of Psfs at the two centroids.
      */
@@ -314,7 +347,6 @@ std::pair<double,int> PsfDipoleFlux::chi2(
     PTR(afwImage::Image<afwMath::Kernel::Pixel>) posPsf = psf->computeImage(posCenter);
 
     afwImage::Image<double> negModel(footprint->getBBox());
-
     afwImage::Image<double> posModel(footprint->getBBox());
     afwImage::Image<float> data(*(exposure.getMaskedImage().getImage()),footprint->getBBox());
     afwImage::Image<afwImage::VariancePixel> var(*(exposure.getMaskedImage().getVariance()),
@@ -364,7 +396,6 @@ void PsfDipoleFlux::measure(
     afw::table::SourceRecord & source,
     afw::image::Exposure<float> const & exposure
 ) const {
-    source.set(_flagMaxPixelsKey, true);
 
     typedef afw::image::Exposure<float>::MaskedImageT MaskedImageT;
 
@@ -373,12 +404,6 @@ void PsfDipoleFlux::measure(
         throw LSST_EXCEPT(pex::exceptions::RuntimeError,
                           (boost::format("No footprint for source %d") % source.getId()).str());
     }
-
-    if (footprint->getArea() > _ctrl.maxPixels) {
-        // Too big
-        return;
-    }
-    source.set(_flagMaxPixelsKey, false);
 
     afw::detection::PeakCatalog peakCatalog = afw::detection::PeakCatalog(footprint->getPeaks());
 
@@ -397,46 +422,51 @@ void PsfDipoleFlux::measure(
     afw::detection::PeakRecord const& positivePeak = peakCatalog.front();
     afw::detection::PeakRecord const& negativePeak = peakCatalog.back();
 
-    // Set up fit parameters and param names
+    // Set up fit parameters and param names; apparently the order of adding them matters
     ROOT::Minuit2::MnUserParameters fitPar;
 
-    // Update by DJR to use flux estimate and not min/max for initial flux
+#if 1
+    // START NEW CODE (DJR): Use estimated fluxes from Naive estimator as starting points
+    NaiveDipoleFootprinter functor(exposure.getMaskedImage());
+    functor.apply(*source.getFootprint());
+    double const posFlux = functor.getSumPositive();
+    double const negFlux = functor.getSumNegative();
+    //std::cout << posFlux << " " << negFlux << " " << positivePeak.getPeakValue() << " " << negativePeak.getPeakValue() << std::endl;
+
+    fitPar.Add((boost::format("P%d")%NEGCENTXPAR).str(), negativePeak.getFx(), _ctrl.stepSizeCoord);
+    fitPar.Add((boost::format("P%d")%NEGCENTYPAR).str(), negativePeak.getFy(), _ctrl.stepSizeCoord);
+    fitPar.Add((boost::format("P%d")%NEGFLUXPAR).str(), negFlux, _ctrl.stepSizeFlux);
+    fitPar.Add((boost::format("P%d")%POSCENTXPAR).str(), positivePeak.getFx(), _ctrl.stepSizeCoord);
+    fitPar.Add((boost::format("P%d")%POSCENTYPAR).str(), positivePeak.getFy(), _ctrl.stepSizeCoord);
+    fitPar.Add((boost::format("P%d")%POSFLUXPAR).str(), posFlux, _ctrl.stepSizeFlux);
+
+    fitPar.SetUpperLimit(NEGFLUXPAR, -0.1); // TBD: do we even want to set these limits?
+    fitPar.SetLowerLimit(POSFLUXPAR, 0.1);  // Allow it to go the other way and use that as a flag...
+
     CONST_PTR(afwDet::Psf) psf = exposure.getPsf();
+    /*
     afw::geom::Point2D posCenter(positivePeak.getFx(), positivePeak.getFy());
     PTR(afwImage::Image<afwMath::Kernel::Pixel>) posPsf = psf->computeImage(posCenter);
     afwMath::Statistics stats = afwMath::makeStatistics(*posPsf, afwMath::MAX);
     double fluxEstimatePos = 2. / stats.getValue(afwMath::MAX) * positivePeak.getPeakValue();
     double fluxEstimateNeg = 2. / stats.getValue(afwMath::MAX) * negativePeak.getPeakValue();
     double fluxEstimate = fluxEstimatePos > -fluxEstimateNeg ? fluxEstimatePos : -fluxEstimateNeg;
-    double radius = psf->computeShape().getDeterminantRadius();
-    double centroidRange = radius * 3.;
-    //std::cout << "HERE: " << fluxEstimatePos << " " << fluxEstimateNeg << " " << fluxEstimate << std::endl;
-    //std::cout << "HERE2: " << positivePeak.getPeakValue() << " " << negativePeak.getPeakValue() << std::endl;
-    //std::cout << "HERE3: " << stats.getValue(afwMath::MAX) << std::endl;
+    */
+    double const radius = psf->computeShape().getDeterminantRadius();
+    double const centroidRange = radius * 5.;
+    fitPar.SetLimits(NEGCENTXPAR, negativePeak.getFx() - centroidRange, negativePeak.getFx() + centroidRange);
+    fitPar.SetLimits(NEGCENTYPAR, negativePeak.getFy() - centroidRange, negativePeak.getFy() + centroidRange);
+    fitPar.SetLimits(POSCENTXPAR, positivePeak.getFx() - centroidRange, positivePeak.getFx() + centroidRange);
+    fitPar.SetLimits(POSCENTYPAR, positivePeak.getFy() - centroidRange, positivePeak.getFy() + centroidRange);
 
-    /** 
+#else
     fitPar.Add((boost::format("P%d")%NEGCENTXPAR).str(), negativePeak.getFx(), _ctrl.stepSizeCoord);
     fitPar.Add((boost::format("P%d")%NEGCENTYPAR).str(), negativePeak.getFy(), _ctrl.stepSizeCoord);
     fitPar.Add((boost::format("P%d")%NEGFLUXPAR).str(), negativePeak.getPeakValue(), _ctrl.stepSizeFlux);
     fitPar.Add((boost::format("P%d")%POSCENTXPAR).str(), positivePeak.getFx(), _ctrl.stepSizeCoord);
     fitPar.Add((boost::format("P%d")%POSCENTYPAR).str(), positivePeak.getFy(), _ctrl.stepSizeCoord);
     fitPar.Add((boost::format("P%d")%POSFLUXPAR).str(), positivePeak.getPeakValue(), _ctrl.stepSizeFlux);
-    **/
-
-    fitPar.Add((boost::format("P%d")%NEGCENTXPAR).str(), negativePeak.getFx(), _ctrl.stepSizeCoord,
-               negativePeak.getFx()-centroidRange, negativePeak.getFx()+centroidRange);
-    fitPar.Add((boost::format("P%d")%NEGCENTYPAR).str(), negativePeak.getFy(), _ctrl.stepSizeCoord,
-               negativePeak.getFy()-centroidRange, negativePeak.getFy()+centroidRange);
-    fitPar.Add((boost::format("P%d")%NEGFLUXPAR).str(), -fluxEstimate, _ctrl.stepSizeFlux*10.,
-               -0.1, -fluxEstimate * 10.);
-
-    fitPar.Add((boost::format("P%d")%POSCENTXPAR).str(), positivePeak.getFx(), _ctrl.stepSizeCoord,
-               positivePeak.getFx()-centroidRange, positivePeak.getFx()+centroidRange);
-    fitPar.Add((boost::format("P%d")%POSCENTYPAR).str(), positivePeak.getFy(), _ctrl.stepSizeCoord,
-               positivePeak.getFy()-centroidRange, positivePeak.getFy()+centroidRange);
-    fitPar.Add((boost::format("P%d")%POSFLUXPAR).str(), fluxEstimate, _ctrl.stepSizeFlux*10.,
-               0.1, fluxEstimate * 10.);
-    // END update by DJR to use flux estimate and not min/max for initial flux
+#endif
 
     // Create the minuit object that knows how to minimise our functor
     //
@@ -451,7 +481,16 @@ void PsfDipoleFlux::measure(
     //
     // And let it loose
     //
+#if 1
+    double const tolerance = 0.001; // default is 0.1; doesn't seem to affect time significantly
+    unsigned int const maxFnCalls = 0; // default (is 200 + 100 * npar + 5 * npar**2
+    ROOT::Minuit2::FunctionMinimum min = migrad(maxFnCalls, tolerance);
+
+    std::cout << "N_EVALS: " << nFuncEvals << std::endl;
+    nFuncEvals = 0;
+#else
     ROOT::Minuit2::FunctionMinimum min = migrad(_ctrl.maxFnCalls);
+#endif
 
     float minChi2 = min.Fval();
     bool const isValid = min.IsValid() && std::isfinite(minChi2);
