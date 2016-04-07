@@ -396,7 +396,14 @@ class DipoleFitAlgorithm(object):
         if diffim is not None:
             self.psfSigma = diffim.getPsf().computeShape().getDeterminantRadius()
 
+        #self.sctrl = afw_math.StatisticsControl()
         self.sctrl = afw_math.StatisticsControl()
+        self.sctrl.setNumSigmaClip(3)
+        self.sctrl.setNumIter(4)
+        self.sctrl.setAndMask(afw_image.MaskU.getPlaneBitMask(["INTRP", "EDGE"]))
+        self.sctrl.setNoGoodPixelsMask(afw_image.MaskU.getPlaneBitMask("BAD"))
+        self.sctrl.setNanSafe(True)
+
 
     def genBgGradientModel(self, in_x, pars=()):
         """Generate gradient model (2-d array) with up to 2nd-order polynomial
@@ -477,14 +484,7 @@ class DipoleFitAlgorithm(object):
         # bbox.grow(3)
         posImg = afw_image.ImageF(posImage.getMaskedImage().getImage(), bbox, afw_image.PARENT)
 
-        sctrl = afw_math.StatisticsControl()
-        sctrl.setNumSigmaClip(3)
-        sctrl.setNumIter(4)
-        sctrl.setAndMask(afw_image.MaskU.getPlaneBitMask(["INTRP", "EDGE"]))
-        sctrl.setNoGoodPixelsMask(afw_image.MaskU.getPlaneBitMask("BAD"))
-        sctrl.setNanSafe(True)
-
-        bctrl = afw_math.BackgroundControl(6, 6, sctrl)  # number of bins - how to set?
+        bctrl = afw_math.BackgroundControl(6, 6, self.sctrl)  # number of bins - how to set?
         bkgd = afw_math.makeBackground(posImg, bctrl)  # .getMaskedImage()
         actrl = afw_math.ApproximateControl(afw_math.ApproximateControl.CHEBYSHEV, order, order)
         approx = bkgd.getApproximate(actrl)
@@ -516,7 +516,7 @@ class DipoleFitAlgorithm(object):
         # Issues between python and C++ documentation: 1. the psf_img is actually NOT always normalized to
         # exactly one; 2. I cannot use INTERNAL as an option for speeding this up; 3. I cannot specify
         # the output dtype of psf.computeImage(), so need to convert to float. All three of these issues
-        # slow down this method.
+        # slow down this method, but not by a huge amount (10-20% or so).
         psf_img = psf.computeImage(Point2D(xcen, ycen))
         psf_img = psf_img.convertF()
         # psf_img_sum = np.sum(psf_img.getArray())  # np.nansum() is 3x slower
